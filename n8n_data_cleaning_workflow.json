@@ -1,0 +1,205 @@
+{
+  "name": "WF2 - Data Cleaning & Validation",
+  "nodes": [
+    {
+      "parameters": {
+        "jsCode": "// Function to standardize column names\nfunction cleanName(name) {\n  return name\n    .replace(/\\(.*?\\)/g, \"\")          // Remove text inside brackets\n    .replace(/[\\/%°]/g, \"\")           // Remove / % °\n    .replace(/-/g, \"_\")               // Replace - with _\n    .replace(/\\s+/g, \"_\")             // Replace spaces with _\n    .replace(/[^a-zA-Z0-9_]/g, \"\")    // Keep only letters, numbers and _\n    .replace(/_+/g, \"_\")              // Replace multiple _ with single _\n    .replace(/^_+|_+$/g, \"\");         // Remove leading/trailing _\n}\n\nconst items = $input.all();\n\nconst output = items.map(item => {\n\n  const newJson = {};\n\n  for (const key of Object.keys(item.json)) {\n\n    const newKey = cleanName(key);\n\n    newJson[newKey] = item.json[key];\n\n  }\n\n  return {\n    json: newJson\n  };\n\n});\n\nreturn output;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        496,
+        -144
+      ],
+      "id": "f46e8327-592d-4ebf-97ee-a3ec35b235d0",
+      "name": "04_Standardize_Column_Names"
+    },
+    {
+      "parameters": {
+        "jsCode": "const numericColumns = [\n\"Wind_Speed\",\n\"Energy_Budget_default\",\n\"Power\",\n\"Potential_Power\",\n\"Nacelle_Temp\",\n\"Transformer_Temp\",\n\"Gear_Oil_Temp\",\n\"Transformer_Cell_Temp\",\n\"Grid_Voltage\",\n\"Rotor_RPM\",\n\"Generator_RPM\",\n\"Capacity_Factor\",\n\"Blade_Pitch\",\n\"Yaw_Angle\",\n\"Grid_Frequency\",\n\"Performance_Index\",\n\"Drive_Train_Acceleration\",\n\"Tower_Acc_X\",\n\"Tower_Acc_Y\"\n];\n\nconst items = $input.all();\n\nfor (const item of items) {\n\n    numericColumns.forEach(col => {\n\n        if (item.json[col] !== \"\" &&\n            item.json[col] !== null &&\n            item.json[col] !== undefined) {\n\n            item.json[col] = Number(item.json[col]);\n\n        }\n\n    });\n\n}\n\nreturn items;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        720,
+        -144
+      ],
+      "id": "d58ba0e9-7c4f-41eb-9188-76ee6aa438f7",
+      "name": "Correct Data Type"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\nfor (const item of items) {\n\n    const missing = [];\n\n    // Check every column\n    for (const key in item.json) {\n\n        const value = item.json[key];\n\n        if (\n            value === null ||\n            value === undefined ||\n            value === \"\"\n        ) {\n            missing.push(key);\n        }\n    }\n\n    // Number of missing columns\n    item.json.Missing_Count = missing.length;\n\n    // Which columns are missing\n    if (missing.length === 0) {\n        item.json.Missing_Columns = \"None\";\n        item.json.Data_Status = \"Valid\";\n    } else {\n        item.json.Missing_Columns = missing.join(\", \");\n        item.json.Data_Status = \"Invalid\";\n    }\n\n}\n\nreturn items;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        944,
+        -144
+      ],
+      "id": "b65847a2-c2fd-448b-bb49-fb60bbf6e42a",
+      "name": "06_Handle_Missing_Values"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\nconst seen = new Set();\n\nfor (const item of items) {\n\n    // Convert the entire row into text\n    const rowString = JSON.stringify(item.json);\n\n    if (seen.has(rowString)) {\n        item.json.Duplicate_Status = \"Duplicate\";\n    } else {\n        seen.add(rowString);\n        item.json.Duplicate_Status = \"Original\";\n    }\n\n}\n\nreturn items;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1168,
+        -144
+      ],
+      "id": "a105b577-a6bc-4783-a01f-2cde4274ea0b",
+      "name": "07_Remove_Duplicates"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\n// Total records\nconst totalRecords = items.length;\n\n// Records having missing values\nconst missingRecords = items.filter(\n    item => item.json.Missing_Count > 0\n).length;\n\n// Duplicate records\nconst duplicateRecords = items.filter(\n    item => item.json.Duplicate_Status === \"Duplicate\"\n).length;\n\n// Records having impossible values\nconst impossibleRecords = items.filter(\n    item => item.json.Impossible_Value_Count > 0\n).length;\n\n// Valid records\nconst validRecords = items.filter(item =>\n    item.json.Data_Status === \"Valid\" &&\n    item.json.Validation_Status === \"Valid\" &&\n    item.json.Duplicate_Status === \"Original\"\n).length;\n\n// Invalid records\nconst invalidRecords = totalRecords - validRecords;\n\n// Data Quality Score\nconst qualityScore = (\n    (validRecords / totalRecords) * 100\n).toFixed(2);\n\n// Return only one summary row\nreturn [\n  {\n    json: {\n      Total_Records: totalRecords,\n      Valid_Records: validRecords,\n      Invalid_Records: invalidRecords,\n      Records_With_Missing_Values: missingRecords,\n      Duplicate_Records: duplicateRecords,\n      Impossible_Value_Records: impossibleRecords,\n      Data_Quality_Score: qualityScore + \"%\"\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1392,
+        -144
+      ],
+      "id": "2d69a444-193f-4846-815a-d583c9f70950",
+      "name": "08_Validate_Impossible_Values"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "39c335ec-0216-4f88-a609-50a1c45688e2",
+              "leftValue": "Data_Status",
+              "rightValue": "Valid",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.3,
+      "position": [
+        1616,
+        -144
+      ],
+      "id": "534dde05-075d-4d1d-ab77-8bbe71493f0a",
+      "name": "10_Filter_Valid_Records"
+    },
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        272,
+        -144
+      ],
+      "id": "de8cb1b3-8cd9-4169-90b0-01ab96382a12",
+      "name": "When Executed by Another Workflow"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "04_Standardize_Column_Names": {
+      "main": [
+        [
+          {
+            "node": "Correct Data Type",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Correct Data Type": {
+      "main": [
+        [
+          {
+            "node": "06_Handle_Missing_Values",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "06_Handle_Missing_Values": {
+      "main": [
+        [
+          {
+            "node": "07_Remove_Duplicates",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "07_Remove_Duplicates": {
+      "main": [
+        [
+          {
+            "node": "08_Validate_Impossible_Values",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "08_Validate_Impossible_Values": {
+      "main": [
+        [
+          {
+            "node": "10_Filter_Valid_Records",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "10_Filter_Valid_Records": {
+      "main": [
+        []
+      ]
+    },
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "04_Standardize_Column_Names",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "ec19019f-b37c-43da-bd20-eea933bcff02",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "1c4b4a7c30d02bd2cb356bb4ec21427c0bb72dfdaafdfef09c7c3004265dadec"
+  },
+  "nodeGroups": [],
+  "id": "sexUldZOBUDCw93e",
+  "tags": []
+}
