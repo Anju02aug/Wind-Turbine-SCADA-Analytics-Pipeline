@@ -54,3 +54,21 @@ The pipeline automates:
 ✔ Automated Email Notifications
 
 ✔ Workflow Automation with n8n
+
+
+---
+
+
+## 📂 Dataset
+
+### Raw Dataset
+- Original 10-minute Wind Turbine SCADA telemetry data
+- Contains missing values, inconsistent formats, and invalid records
+
+### Processed Dataset
+- Standardized column names
+- Corrected data types
+- Removed invalid records
+- Handled missing values
+- Ready for anomaly detection and Power BI reporting
+
