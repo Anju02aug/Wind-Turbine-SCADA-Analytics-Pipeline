@@ -72,3 +72,9 @@ The pipeline automates:
 - Handled missing values
 - Ready for anomaly detection and Power BI reporting
 
+---
+
+
+## 🔄 n8n Data Cleaning Workflow
+
+![n8n Workflow](n8n_workflow.jpg)
