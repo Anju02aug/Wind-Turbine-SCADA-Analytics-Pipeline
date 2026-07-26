@@ -74,7 +74,52 @@ The pipeline automates:
 
 ---
 
-
 ## 🔄 n8n Data Cleaning Workflow
+
+### Purpose
+
+Automate the complete preprocessing of Wind Turbine SCADA telemetry data to improve data quality and prepare the dataset for analytics and anomaly detection.
+
+### Workflow
+
+Raw Dataset
+⬇
+Data Ingestion
+⬇
+Column Standardization
+⬇
+Data Type Conversion
+⬇
+Missing Value Handling
+⬇
+Duplicate Removal
+⬇
+Impossible Value Validation
+⬇
+Clean Dataset
+⬇
+PostgreSQL
+⬇
+Power BI Dashboard
+⬇
+AI-Based Anomaly Detection
+
+### Workflow Diagram
+
+![n8n Workflow](n8n_workflow.jpg)
+
+
+---
+
+## 🎥 Project Demo
+
+Watch the complete walkthrough of the Wind Turbine SCADA Analytics Pipeline on Loom.
+
+🔗 https://www.loom.com/share/48987d2a9dd04760b3eee46082afc5d8
+
+
+
+
+
 
 ![n8n Workflow](n8n_workflow.jpg)
