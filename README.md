@@ -119,6 +119,24 @@ Watch the complete walkthrough of the Wind Turbine SCADA Analytics Pipeline on L
 
 
 
+---
+
+## Project Management & Workflow
+
+### GitHub Project Board
+
+Track project tasks, milestones and completion status.
+
+![GitHub Project Board](github_project_board.png)
+
+[View Project Board](https://github.com/users/Anju02aug/projects/1/views/1)
+
+### n8n Data Cleaning Workflow
+
+The workflow automates SCADA telemetry data cleaning and validation.
+
+![SCADA n8n Workflow](SCADA_n8n_Workflow.png)
+
 
 
 
